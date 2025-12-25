@@ -39,11 +39,11 @@ const WorkoutsView: React.FC<WorkoutsViewProps> = ({ workouts, activeWorkout, on
           workouts.map(workout => (
             <div 
               key={workout.id} 
-              className="bg-[#1C1C1E] rounded-[2rem] border border-white/5 overflow-hidden active:scale-[0.99] transition-transform"
+              className="bg-[#1C1C1E] rounded-3xl border border-white/5 overflow-hidden active:scale-[0.99] transition-transform"
             >
-              <div className="p-6 flex justify-between items-start">
+              <div className="p-4 flex justify-between items-start">
                 <div className="space-y-1">
-                  <h3 className="text-xl font-bold tracking-tight">{workout.name}</h3>
+                  <h3 className="text-lg font-bold tracking-tight">{workout.name}</h3>
                   <p className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">
                     {workout.exercises.length} Exercises
                   </p>
@@ -66,11 +66,11 @@ const WorkoutsView: React.FC<WorkoutsViewProps> = ({ workouts, activeWorkout, on
                 </div>
               </div>
               
-              <div className="px-6 pb-6 pt-2">
+              <div className="px-4 pb-4 pt-0">
                 {activeWorkout ? (
                   <button 
                     disabled
-                    className="w-full bg-[#1C1C1E] text-[#8E8E93] font-black py-4 rounded-2xl uppercase tracking-widest text-xs flex items-center justify-center space-x-2 cursor-not-allowed border border-white/5"
+                    className="w-full bg-[#1C1C1E] text-[#8E8E93] font-black py-3 rounded-xl uppercase tracking-widest text-xs flex items-center justify-center space-x-2 cursor-not-allowed border border-white/5"
                   >
                     <i className="fa-solid fa-lock text-[10px]"></i>
                     <span>Session in Progress</span>
@@ -78,7 +78,7 @@ const WorkoutsView: React.FC<WorkoutsViewProps> = ({ workouts, activeWorkout, on
                 ) : (
                   <button 
                     onClick={() => onStart(workout)}
-                    className="w-full bg-white text-black font-black py-4 rounded-2xl uppercase tracking-widest text-xs flex items-center justify-center space-x-2 active:bg-[#FF9500] active:scale-95 transition-all"
+                    className="w-full bg-white text-black font-black py-3 rounded-xl uppercase tracking-widest text-xs flex items-center justify-center space-x-2 active:bg-[#FF9500] active:scale-95 transition-all"
                   >
                     <i className="fa-solid fa-play text-[10px]"></i>
                     <span>Start Routine</span>

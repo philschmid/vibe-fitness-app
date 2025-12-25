@@ -1,16 +1,20 @@
-
-import { Workout, TrainingSession, DailyLog, ActiveSessionData } from '../types';
-import { STORAGE_KEYS, INITIAL_WORKOUTS } from '../constants';
+import {
+  Workout,
+  TrainingSession,
+  DailyLog,
+  ActiveSessionData,
+} from "../types";
+import { STORAGE_KEYS } from "../constants";
 
 export const storage = {
   getWorkouts: (): Workout[] => {
     const data = localStorage.getItem(STORAGE_KEYS.WORKOUTS);
-    return data ? JSON.parse(data) : INITIAL_WORKOUTS;
+    return data ? JSON.parse(data) : [];
   },
   saveWorkouts: (workouts: Workout[]) => {
     localStorage.setItem(STORAGE_KEYS.WORKOUTS, JSON.stringify(workouts));
   },
-  
+
   getTrainings: (): TrainingSession[] => {
     const data = localStorage.getItem(STORAGE_KEYS.TRAININGS);
     return data ? JSON.parse(data) : [];
@@ -36,5 +40,5 @@ export const storage = {
   },
   clearActiveSession: () => {
     localStorage.removeItem(STORAGE_KEYS.ACTIVE_SESSION);
-  }
+  },
 };

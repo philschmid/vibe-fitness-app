@@ -43,4 +43,4 @@ export interface DailyLog {
   calories: number;
 }
 
-export type AppView = 'dashboard' | 'workouts' | 'session' | 'daily' | 'stats' | 'edit-workout' | 'history' | 'history-detail';
+export type AppView = 'dashboard' | 'workouts' | 'session' | 'daily' | 'stats' | 'edit-workout' | 'history' | 'history-detail' | 'settings';
