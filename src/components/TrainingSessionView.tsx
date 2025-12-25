@@ -162,7 +162,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
     lastSession?.exerciseResults[currentExercise.id]?.[currentStepIndex];
 
   return (
-    <div className="flex flex-col h-screen bg-black text-white overflow-hidden relative">
+    <div className="flex flex-col h-dvh bg-black text-white overflow-hidden relative">
       {/* Overview Modal */}
       {showOverview && (
         <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-xl animate-in flex flex-col">
