@@ -1,4 +1,5 @@
 import React from "react";
+import { APP_VERSION } from "../constants";
 
 interface SettingsViewProps {
   onSeedData: () => void;
@@ -87,7 +88,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
               <div>
                 <h3 className="font-bold">Vibe Fitness</h3>
-                <p className="text-xs text-[#8E8E93]">Version 0.0.1</p>
+                <p className="text-xs text-[#8E8E93]">Version {APP_VERSION}</p>
               </div>
             </div>
             <p className="text-xs text-[#8E8E93] leading-relaxed">

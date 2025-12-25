@@ -243,7 +243,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
       )}
 
       {/* Top Bar */}
-      <div className="flex justify-between items-center px-6 pt-8 pb-2">
+      <div className="flex justify-between items-center px-6 pt-safe pb-2">
         <div className="flex-1">
           <button
             onClick={() => setShowOverview(true)}
@@ -274,11 +274,11 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
         </div>
 
         {/* Full Screen Interactive Area */}
-        <div className="flex-1 flex flex-col justify-center space-y-6 pb-4">
+        <div className="flex-1 flex flex-col justify-center space-y-4 pb-2">
           {currentStep.type === "warmup" ? (
-            <div className="flex flex-col items-center justify-center space-y-8 animate-in">
-              <div className="w-32 h-32 rounded-full border border-[#FF9500]/30 flex items-center justify-center bg-[#FF9500]/5">
-                <i className="fa-solid fa-fire-flame-curved text-5xl text-[#FF9500]"></i>
+            <div className="flex flex-col items-center justify-center space-y-6 animate-in">
+              <div className="w-24 h-24 rounded-full border border-[#FF9500]/30 flex items-center justify-center bg-[#FF9500]/5">
+                <i className="fa-solid fa-fire-flame-curved text-4xl text-[#FF9500]"></i>
               </div>
               <div className="text-center">
                 <p className="text-[#8E8E93] font-medium max-w-[200px]">
@@ -287,7 +287,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
               </div>
             </div>
           ) : (
-            <div className="space-y-6 animate-in">
+            <div className="space-y-4 animate-in">
               {/* Last Session Reference */}
               {previousPerformance && (
                 <div className="flex justify-center">
@@ -306,8 +306,8 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
                 </div>
               )}
 
-              {/* Huge Controls */}
-              <div className="grid grid-cols-1 gap-6">
+              {/* Controls */}
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <button
@@ -316,7 +316,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
                           weight: Math.max(0, currentSetData.weight - 0.5),
                         })
                       }
-                      className="w-16 h-16 rounded-3xl bg-[#1C1C1E] flex items-center justify-center text-xl active:bg-[#FF9500] active:text-black transition-all"
+                      className="w-14 h-14 rounded-3xl bg-[#1C1C1E] flex items-center justify-center text-xl active:bg-[#FF9500] active:text-black transition-all"
                     >
                       <i className="fa-solid fa-minus"></i>
                     </button>
@@ -346,7 +346,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
                           weight: currentSetData.weight + 0.5,
                         })
                       }
-                      className="w-16 h-16 rounded-3xl bg-[#1C1C1E] flex items-center justify-center text-xl active:bg-[#FF9500] active:text-black transition-all"
+                      className="w-14 h-14 rounded-3xl bg-[#1C1C1E] flex items-center justify-center text-xl active:bg-[#FF9500] active:text-black transition-all"
                     >
                       <i className="fa-solid fa-plus"></i>
                     </button>
@@ -361,7 +361,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
                           reps: Math.max(0, currentSetData.reps - 1),
                         })
                       }
-                      className="w-16 h-16 rounded-3xl bg-[#1C1C1E] flex items-center justify-center text-xl active:bg-[#FF9500] active:text-black transition-all"
+                      className="w-14 h-14 rounded-3xl bg-[#1C1C1E] flex items-center justify-center text-xl active:bg-[#FF9500] active:text-black transition-all"
                     >
                       <i className="fa-solid fa-minus"></i>
                     </button>
@@ -384,7 +384,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
                       onClick={() =>
                         updateCurrentSet({ reps: currentSetData.reps + 1 })
                       }
-                      className="w-16 h-16 rounded-3xl bg-[#1C1C1E] flex items-center justify-center text-xl active:bg-[#FF9500] active:text-black transition-all"
+                      className="w-14 h-14 rounded-3xl bg-[#1C1C1E] flex items-center justify-center text-xl active:bg-[#FF9500] active:text-black transition-all"
                     >
                       <i className="fa-solid fa-plus"></i>
                     </button>
@@ -397,7 +397,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
       </div>
 
       {/* Footer Controls */}
-      <footer className="p-6 pb-8 space-y-4">
+      <footer className="p-6 pb-safe space-y-4">
         <div className="flex items-center space-x-1.5 px-4">
           {steps.map((_, i) => (
             <div

@@ -1,5 +1,7 @@
 import { Workout, TrainingSession, DailyLog } from "./types";
 
+export const APP_VERSION = "0.0.2";
+
 export const INITIAL_WORKOUTS: Workout[] = [
   {
     id: "1",
