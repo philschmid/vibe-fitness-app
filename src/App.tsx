@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   AppView,
   Workout,
@@ -90,10 +90,10 @@ const App: React.FC = () => {
     setView("session");
   };
 
-  const handleSessionUpdate = (data: ActiveSessionData) => {
+  const handleSessionUpdate = useCallback((data: ActiveSessionData) => {
     setActiveSessionData(data);
     storage.saveActiveSession(data);
-  };
+  }, []);
 
   const handleFinishSession = (session: TrainingSession) => {
     const updatedSessions = [...sessions, session];
