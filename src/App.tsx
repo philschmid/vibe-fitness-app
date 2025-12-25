@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useAuth } from "./context/AuthContext";
+import AuthView from "./components/AuthView";
 import {
   AppView,
   Workout,
   TrainingSession,
   DailyLog,
-  Exercise,
   ActiveSessionData,
 } from "./types";
-import { storage } from "./services/storage";
+import { db } from "./services/db";
+import { storage } from "./services/storage"; // Keep for active session
+import { migrateLocalData } from "./services/migration";
 import {
   INITIAL_WORKOUTS,
   INITIAL_TRAININGS,
@@ -23,8 +26,13 @@ import EditWorkoutView from "./components/EditWorkoutView";
 import HistoryView from "./components/HistoryView";
 import HistoryDetailView from "./components/HistoryDetailView";
 import SettingsView from "./components/SettingsView";
+import { useAppVersion } from "./hooks/useAppVersion";
+import UpdatePopup from "./components/UpdatePopup";
 
 const App: React.FC = () => {
+  const { session, loading, signOut } = useAuth();
+  const { updateAvailable, forceUpdate, releaseNotes, latestVersion } =
+    useAppVersion();
   const [view, setView] = useState<AppView>("dashboard");
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
@@ -36,48 +44,106 @@ const App: React.FC = () => {
   const [selectedSession, setSelectedSession] =
     useState<TrainingSession | null>(null);
 
-  // Load data on mount
-  useEffect(() => {
-    setWorkouts(storage.getWorkouts());
-    setSessions(storage.getTrainings());
-    setDailyLogs(storage.getDailyLogs());
-
-    // Check for active session
-    const savedActiveSession = storage.getActiveSession();
-    if (savedActiveSession) {
-      const workout = storage
-        .getWorkouts()
-        .find((w) => w.id === savedActiveSession.workoutId);
-      if (workout) {
-        setActiveWorkout(workout);
-        setActiveSessionData(savedActiveSession);
-        // Don't force view change immediately if we want to show it on dashboard,
-        // but user requested "if a training is not finished it should be shown on the home screen"
-        // So we stay on dashboard but show the "Resume" option.
-      }
+  const refreshData = useCallback(async () => {
+    try {
+      const [w, s, l] = await Promise.all([
+        db.getWorkouts(),
+        db.getTrainings(),
+        db.getDailyLogs(),
+      ]);
+      setWorkouts(w);
+      setSessions(s);
+      setDailyLogs(l);
+    } catch (error) {
+      console.error("Failed to load data:", error);
     }
   }, []);
 
-  const handleSeedData = () => {
-    if (confirm("Load dummy data? This will overwrite your current data.")) {
-      storage.saveWorkouts(INITIAL_WORKOUTS);
-      storage.saveTrainings(INITIAL_TRAININGS);
-      storage.saveDailyLogs(INITIAL_DAILY_LOGS);
+  // Load data on mount or when session changes
+  useEffect(() => {
+    if (session) {
+      refreshData();
+    }
+  }, [session, refreshData]);
 
-      setWorkouts(INITIAL_WORKOUTS);
-      setSessions(INITIAL_TRAININGS);
-      setDailyLogs(INITIAL_DAILY_LOGS);
+  // Check for active session (local storage)
+  useEffect(() => {
+    const savedActiveSession = storage.getActiveSession();
+    if (savedActiveSession) {
+      // We need workouts loaded to find the active workout
+      // But workouts load async.
+      // We can rely on 'workouts' state update.
+      if (workouts.length > 0) {
+        const workout = workouts.find(
+          (w) => w.id === savedActiveSession.workoutId
+        );
+        if (workout) {
+          setActiveWorkout(workout);
+          setActiveSessionData(savedActiveSession);
+        }
+      }
+    }
+  }, [workouts]);
+
+  const handleSeedData = async () => {
+    if (confirm("Load dummy data? This will overwrite your current data.")) {
+      // Note: In DB mode, we append/upsert, not strictly overwrite unless we delete first.
+      // For simplicity, we just upsert.
+      for (const w of INITIAL_WORKOUTS) await db.saveWorkout(w);
+      for (const s of INITIAL_TRAININGS) await db.saveTraining(s);
+      for (const l of INITIAL_DAILY_LOGS) await db.saveDailyLog(l);
+      await refreshData();
     }
   };
 
-  const handleLoadWorkouts = () => {
+  const handleLoadWorkouts = async () => {
     if (
       confirm(
-        "Load default workout routines? This will overwrite your current routines."
+        "Load default workout routines? This will add them to your collection."
       )
     ) {
-      storage.saveWorkouts(INITIAL_WORKOUTS);
-      setWorkouts(INITIAL_WORKOUTS);
+      try {
+        console.log("Starting to load default workouts...");
+
+        // Remove hardcoded numeric IDs to let DB generate UUIDs
+        // Or generate valid UUIDs client-side if we want to preserve relationships
+        for (const w of INITIAL_WORKOUTS) {
+          console.log(`Saving workout: ${w.name}`);
+
+          // Create a copy with a new UUID if the ID is invalid (like "1")
+          // Note: This logic depends on whether we want to "reset" the ID or use a specific one.
+          // Since "1" is invalid for UUID, we MUST generate a new one.
+          // However, db.saveWorkout expects a Workout object which has an ID.
+
+          // Let's generate a random UUID for the workout and its exercises
+          const workoutId = crypto.randomUUID();
+          const exercisesWithIds = w.exercises.map((ex) => ({
+            ...ex,
+            id: crypto.randomUUID(), // New ID for exercise
+          }));
+
+          const workoutToSave: Workout = {
+            ...w,
+            id: workoutId,
+            exercises: exercisesWithIds,
+          };
+
+          await db.saveWorkout(workoutToSave);
+        }
+        console.log("All workouts saved. Refreshing data...");
+        await refreshData();
+        alert("Default workouts loaded successfully!");
+      } catch (error) {
+        console.error("Failed to load workouts:", error);
+        alert("Failed to load workouts. Check console for details.");
+      }
+    }
+  };
+
+  const handleMigrateData = async () => {
+    if (confirm("Migrate local data to Supabase?")) {
+      await migrateLocalData();
+      await refreshData();
     }
   };
 
@@ -95,10 +161,18 @@ const App: React.FC = () => {
     storage.saveActiveSession(data);
   }, []);
 
-  const handleFinishSession = (session: TrainingSession) => {
+  const handleFinishSession = async (session: TrainingSession) => {
+    // Optimistic update
     const updatedSessions = [...sessions, session];
     setSessions(updatedSessions);
-    storage.saveTrainings(updatedSessions);
+
+    try {
+      await db.saveTraining(session);
+    } catch (error) {
+      console.error("Failed to save session:", error);
+      alert("Failed to save session. Please try again.");
+      return; // Don't clear state if failed
+    }
 
     // Clear active session
     setActiveWorkout(null);
@@ -106,6 +180,7 @@ const App: React.FC = () => {
     storage.clearActiveSession();
 
     setView("dashboard");
+    refreshData(); // Sync with DB
   };
 
   const handleAbortSession = () => {
@@ -117,7 +192,8 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSaveDailyLog = (log: DailyLog) => {
+  const handleSaveDailyLog = async (log: DailyLog) => {
+    // Optimistic update
     const index = dailyLogs.findIndex((l) => l.date === log.date);
     let updatedLogs;
     if (index >= 0) {
@@ -127,10 +203,17 @@ const App: React.FC = () => {
       updatedLogs = [...dailyLogs, log];
     }
     setDailyLogs(updatedLogs);
-    storage.saveDailyLogs(updatedLogs);
+
+    try {
+      await db.saveDailyLog(log);
+    } catch (error) {
+      console.error("Failed to save log:", error);
+    }
+    refreshData();
   };
 
-  const handleSaveWorkout = (workout: Workout) => {
+  const handleSaveWorkout = async (workout: Workout) => {
+    // Optimistic update
     const index = workouts.findIndex((w) => w.id === workout.id);
     let updatedWorkouts;
     if (index >= 0) {
@@ -140,14 +223,29 @@ const App: React.FC = () => {
       updatedWorkouts = [...workouts, workout];
     }
     setWorkouts(updatedWorkouts);
-    storage.saveWorkouts(updatedWorkouts);
     setView("workouts");
+
+    try {
+      await db.saveWorkout(workout);
+    } catch (error) {
+      console.error("Failed to save workout:", error);
+    }
+    refreshData();
   };
 
-  const handleDeleteWorkout = (id: string) => {
-    const updatedWorkouts = workouts.filter((w) => w.id !== id);
-    setWorkouts(updatedWorkouts);
-    storage.saveWorkouts(updatedWorkouts);
+  const handleDeleteWorkout = async (id: string) => {
+    if (confirm("Are you sure you want to delete this workout?")) {
+      // Optimistic update
+      const updatedWorkouts = workouts.filter((w) => w.id !== id);
+      setWorkouts(updatedWorkouts);
+
+      try {
+        await db.deleteWorkout(id);
+      } catch (error) {
+        console.error("Failed to delete workout:", error);
+      }
+      refreshData();
+    }
   };
 
   const handleEditWorkout = (workout: Workout) => {
@@ -159,6 +257,18 @@ const App: React.FC = () => {
     setSelectedSession(session);
     setView("history-detail");
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-black text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <AuthView />;
+  }
 
   const renderContent = () => {
     switch (view) {
@@ -255,6 +365,8 @@ const App: React.FC = () => {
           <SettingsView
             onSeedData={handleSeedData}
             onLoadWorkouts={handleLoadWorkouts}
+            onMigrateData={handleMigrateData}
+            onSignOut={signOut}
           />
         );
       default:
@@ -264,6 +376,14 @@ const App: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto h-dvh bg-black flex flex-col relative overflow-hidden">
+      {updateAvailable && latestVersion && (
+        <UpdatePopup
+          latestVersion={latestVersion}
+          forceUpdate={forceUpdate}
+          releaseNotes={releaseNotes}
+          onUpdate={() => window.location.reload()}
+        />
+      )}
       <div className="flex-1 overflow-y-auto hide-scrollbar">
         {renderContent()}
       </div>
