@@ -34,13 +34,13 @@ describe('Training Session CRUD Operations', () => {
         });
 
         const session = {
-            id: 's1',
-            workoutId: 'w1',
+            id: '22222222-2222-2222-2222-222222222222',
+            workoutId: '33333333-3333-3333-3333-333333333333',
             date: new Date().toISOString(),
             startTime: Date.now(),
             endTime: Date.now() + 3600000,
             exerciseResults: {
-                'e1': [{ reps: 10, weight: 50, isWarmup: false, completed: true }]
+                '44444444-4444-4444-4444-444444444444': [{ reps: 10, weight: 50, isWarmup: false, completed: true }]
             }
         };
 

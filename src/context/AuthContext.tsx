@@ -38,10 +38,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const signInWithGoogle = async () => {
+    // Use explicit redirect URL from env if available, otherwise current origin
+    const redirectTo =
+      import.meta.env.VITE_AUTH_REDIRECT_URL ?? window.location.origin;
+
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo,
       },
     });
   };

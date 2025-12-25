@@ -29,7 +29,7 @@ describe("Daily Log CRUD Operations", () => {
       });
 
       const log = {
-        id: "d1",
+        id: "11111111-1111-1111-1111-111111111111",
         date: "2023-01-01",
         weight: 80,
         calories: 2500,
@@ -39,7 +39,7 @@ describe("Daily Log CRUD Operations", () => {
 
       expect(supabase.from).toHaveBeenCalledWith("daily_logs");
       expect(mockUpsert).toHaveBeenCalledWith({
-        id: "d1",
+        id: "11111111-1111-1111-1111-111111111111",
         user_id: "user1",
         date: "2023-01-01",
         weight: 80,
@@ -51,7 +51,12 @@ describe("Daily Log CRUD Operations", () => {
   describe("getDailyLogs", () => {
     it("should fetch daily logs", async () => {
       const mockData = [
-        { id: "d1", date: "2023-01-01", weight: 80, calories: 2500 },
+        {
+          id: "11111111-1111-1111-1111-111111111111",
+          date: "2023-01-01",
+          weight: 80,
+          calories: 2500,
+        },
       ];
 
       const mockSelect = vi.fn().mockReturnThis();

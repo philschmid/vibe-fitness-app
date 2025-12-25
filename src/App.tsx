@@ -87,11 +87,51 @@ const App: React.FC = () => {
 
   const handleSeedData = async () => {
     if (confirm("Load dummy data? This will overwrite your current data.")) {
-      // Note: In DB mode, we append/upsert, not strictly overwrite unless we delete first.
-      // For simplicity, we just upsert.
-      for (const w of INITIAL_WORKOUTS) await db.saveWorkout(w);
-      for (const s of INITIAL_TRAININGS) await db.saveTraining(s);
-      for (const l of INITIAL_DAILY_LOGS) await db.saveDailyLog(l);
+      const idMap = new Map<string, string>();
+      const isValidUUID = (id: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          id
+        );
+
+      // 1. Workouts
+      for (const w of INITIAL_WORKOUTS) {
+        const workout = { ...w };
+        if (!isValidUUID(workout.id)) {
+          const newId = crypto.randomUUID();
+          idMap.set(workout.id, newId);
+          workout.id = newId;
+        }
+
+        workout.exercises = workout.exercises.map((ex) => {
+          if (!isValidUUID(ex.id)) {
+            return { ...ex, id: crypto.randomUUID() };
+          }
+          return ex;
+        });
+
+        await db.saveWorkout(workout);
+      }
+
+      // 2. Trainings
+      for (const s of INITIAL_TRAININGS) {
+        const session = { ...s };
+        if (!isValidUUID(session.id)) {
+          session.id = crypto.randomUUID();
+        }
+        if (idMap.has(session.workoutId)) {
+          session.workoutId = idMap.get(session.workoutId)!;
+        }
+        await db.saveTraining(session);
+      }
+
+      // 3. Logs
+      for (const l of INITIAL_DAILY_LOGS) {
+        const log = { ...l };
+        if (!isValidUUID(log.id)) {
+          log.id = crypto.randomUUID();
+        }
+        await db.saveDailyLog(log);
+      }
       await refreshData();
     }
   };

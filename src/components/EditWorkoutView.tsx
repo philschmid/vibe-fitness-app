@@ -11,12 +11,12 @@ interface EditWorkoutViewProps {
 const EditWorkoutView: React.FC<EditWorkoutViewProps> = ({ workout, onSave, onCancel }) => {
   const [name, setName] = useState(workout?.name || '');
   const [exercises, setExercises] = useState<Exercise[]>(workout?.exercises || [
-    { id: 'new-1', name: '', sets: 3, hasWarmup: false }
+    { id: crypto.randomUUID(), name: '', sets: 3, hasWarmup: false }
   ]);
 
   const addExercise = () => {
     setExercises([...exercises, { 
-      id: `ex-${Date.now()}`, 
+      id: crypto.randomUUID(), 
       name: '', 
       sets: 3, 
       hasWarmup: false 
@@ -38,7 +38,7 @@ const EditWorkoutView: React.FC<EditWorkoutViewProps> = ({ workout, onSave, onCa
     if (exercises.some(ex => !ex.name.trim())) return alert('All exercises must have a name');
     
     onSave({
-      id: workout?.id || `w-${Date.now()}`,
+      id: workout?.id || crypto.randomUUID(),
       name,
       exercises
     });

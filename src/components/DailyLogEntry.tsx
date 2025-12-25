@@ -25,7 +25,7 @@ const DailyLogEntry: React.FC<DailyLogEntryProps> = ({
 
   const handleSave = () => {
     onSave({
-      id: existingLog?.id || Date.now().toString(),
+      id: existingLog?.id || crypto.randomUUID(),
       date: today,
       weight: parseFloat(weight),
       calories: parseInt(calories),

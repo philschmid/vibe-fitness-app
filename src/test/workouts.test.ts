@@ -21,15 +21,15 @@ describe('Workout CRUD Operations', () => {
     it('should fetch and format workouts correctly', async () => {
       const mockWorkoutsData = [
         {
-          id: 'w1',
+          id: '55555555-5555-5555-5555-555555555555',
           name: 'Test Workout',
           workout_exercises: [
             {
-              id: 'we1',
+              id: '66666666-6666-6666-6666-666666666666',
               order_index: 0,
               target_sets: 3,
               exercises: {
-                id: 'e1',
+                id: '77777777-7777-7777-7777-777777777777',
                 name: 'Test Exercise',
                 default_sets: 3,
                 has_warmup: true,
@@ -83,7 +83,7 @@ describe('Workout CRUD Operations', () => {
     it('should throw error if user is not logged in', async () => {
       (supabase.auth.getUser as any).mockResolvedValue({ data: { user: null } });
       
-      await expect(db.saveWorkout({ id: '1', name: 'Test', exercises: [] }))
+      await expect(db.saveWorkout({ id: '55555555-5555-5555-5555-555555555555', name: 'Test', exercises: [] }))
         .rejects.toThrow('User not logged in');
     });
 
@@ -111,10 +111,10 @@ describe('Workout CRUD Operations', () => {
       });
 
       const workout = {
-        id: 'w1',
+        id: '55555555-5555-5555-5555-555555555555',
         name: 'New Workout',
         exercises: [
-            { id: 'e1', name: 'Ex 1', sets: 3, hasWarmup: false }
+            { id: '77777777-7777-7777-7777-777777777777', name: 'Ex 1', sets: 3, hasWarmup: false }
         ]
       };
 
@@ -136,11 +136,11 @@ describe('Workout CRUD Operations', () => {
             eq: mockEq
         });
 
-        await db.deleteWorkout('w1');
+        await db.deleteWorkout('55555555-5555-5555-5555-555555555555');
 
         expect(supabase.from).toHaveBeenCalledWith('workouts');
         expect(mockUpdate).toHaveBeenCalledWith({ is_archived: true });
-        expect(mockEq).toHaveBeenCalledWith('id', 'w1');
+        expect(mockEq).toHaveBeenCalledWith('id', '55555555-5555-5555-5555-555555555555');
     });
   });
 });
