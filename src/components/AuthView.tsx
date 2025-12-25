@@ -35,6 +35,16 @@ const AuthView: React.FC = () => {
         </svg>
         Sign in with Google
       </button>
+
+      {/* Troubleshooting for login issues */}
+      <div className="absolute bottom-8 left-0 right-0 flex justify-center">
+        <button
+          onClick={() => window.location.reload()}
+          className="text-[#3a3a3c] text-xs font-medium uppercase tracking-widest hover:text-white transition-colors px-4 py-2"
+        >
+          Reload App
+        </button>
+      </div>
     </div>
   );
 };
