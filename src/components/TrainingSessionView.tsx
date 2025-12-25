@@ -109,7 +109,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
       setCurrentStepIndex(0);
     } else {
       const session: TrainingSession = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(), // Ensure valid UUID
         workoutId: workout.id,
         date: new Date(startTime).toISOString(),
         startTime,

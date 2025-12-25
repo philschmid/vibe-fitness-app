@@ -4,11 +4,15 @@ import { APP_VERSION } from "../constants";
 interface SettingsViewProps {
   onSeedData: () => void;
   onLoadWorkouts: () => void;
+  onMigrateData: () => void;
+  onSignOut: () => void;
 }
 
 const SettingsView: React.FC<SettingsViewProps> = ({
   onSeedData,
   onLoadWorkouts,
+  onMigrateData,
+  onSignOut,
 }) => {
   return (
     <div className="p-6 space-y-8 pb-24 animate-in">
@@ -20,10 +24,46 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       <div className="space-y-6">
         <section className="space-y-3">
           <h2 className="text-xs font-black uppercase text-[#8E8E93] tracking-widest px-1">
+            Account
+          </h2>
+          <div className="bg-[#1C1C1E] rounded-3xl overflow-hidden border border-white/5">
+            <div className="p-5 flex items-center justify-between border-b border-white/5">
+              <div>
+                <h3 className="font-bold text-base">Sign Out</h3>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Sign out of your account.
+                </p>
+              </div>
+              <button
+                onClick={onSignOut}
+                className="bg-[#FF453A] text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest active:scale-95 transition-transform"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-xs font-black uppercase text-[#8E8E93] tracking-widest px-1">
             Data Management
           </h2>
 
           <div className="bg-[#1C1C1E] rounded-3xl overflow-hidden border border-white/5">
+            <div className="p-5 flex items-center justify-between border-b border-white/5">
+              <div>
+                <h3 className="font-bold text-base">Migrate Data</h3>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Upload local data to Supabase.
+                </p>
+              </div>
+              <button
+                onClick={onMigrateData}
+                className="bg-[#32D74B] text-black px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest active:scale-95 transition-transform"
+              >
+                Migrate
+              </button>
+            </div>
             <div className="p-5 flex items-center justify-between border-b border-white/5">
               <div>
                 <h3 className="font-bold text-base">Demo Mode</h3>
