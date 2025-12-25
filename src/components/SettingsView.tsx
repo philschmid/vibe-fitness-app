@@ -56,6 +56,28 @@ const SettingsView: React.FC<SettingsViewProps> = ({
 
         <section className="space-y-3">
           <h2 className="text-xs font-black uppercase text-[#8E8E93] tracking-widest px-1">
+            System
+          </h2>
+          <div className="bg-[#1C1C1E] rounded-3xl overflow-hidden border border-white/5">
+            <div className="p-5 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-base">Update App</h3>
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Reload to get the latest updates.
+                </p>
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-[#1C1C1E] border border-white/20 text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest active:scale-95 transition-transform"
+              >
+                Reload
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-xs font-black uppercase text-[#8E8E93] tracking-widest px-1">
             About
           </h2>
           <div className="bg-[#1C1C1E] rounded-3xl p-5 border border-white/5 space-y-4">
@@ -65,7 +87,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
               <div>
                 <h3 className="font-bold">Vibe Fitness</h3>
-                <p className="text-xs text-[#8E8E93]">Version 1.0.0</p>
+                <p className="text-xs text-[#8E8E93]">Version 0.0.1</p>
               </div>
             </div>
             <p className="text-xs text-[#8E8E93] leading-relaxed">
