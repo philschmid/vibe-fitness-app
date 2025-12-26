@@ -18,9 +18,15 @@ const Dashboard: React.FC<DashboardProps> = ({
   onStartSession,
   onViewChange,
 }) => {
-  const todayLog = dailyLogs.find(
-    (l) => l.date === new Date().toISOString().split("T")[0]
-  );
+  // Use local date for "today"
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(d.getDate()).padStart(2, "0")}`;
+
+  const todayLog = dailyLogs.find((l) => l.date === today);
+  const lastLog = dailyLogs.length > 0 ? dailyLogs[dailyLogs.length - 1] : null;
   const lastSession =
     sessions.length > 0 ? sessions[sessions.length - 1] : null;
   const lastWorkout = lastSession
@@ -101,12 +107,17 @@ const Dashboard: React.FC<DashboardProps> = ({
             <p className="text-[#8E8E93] text-[10px] font-bold uppercase mb-1 tracking-widest">
               Weight
             </p>
-            <p className="text-2xl font-mono font-bold">
-              {todayLog ? todayLog.weight : "--"}
-              <span className="text-sm font-sans ml-1 opacity-50 font-normal">
-                kg
-              </span>
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-2xl font-mono font-bold">
+                {todayLog?.weight || lastLog?.weight || "--"}
+                <span className="text-sm font-sans ml-1 opacity-50 font-normal">
+                  kg
+                </span>
+              </p>
+              {!todayLog && (
+                <div className="w-2 h-2 rounded-full bg-[#FF9500] animate-pulse" />
+              )}
+            </div>
             <div className="h-1 bg-white/5 rounded-full mt-3 overflow-hidden">
               <div className="h-full bg-[#FF9500] w-2/3"></div>
             </div>
@@ -118,12 +129,17 @@ const Dashboard: React.FC<DashboardProps> = ({
             <p className="text-[#8E8E93] text-[10px] font-bold uppercase mb-1 tracking-widest">
               Energy
             </p>
-            <p className="text-2xl font-mono font-bold">
-              {todayLog ? todayLog.calories : "--"}
-              <span className="text-sm font-sans ml-1 opacity-50 font-normal">
-                cal
-              </span>
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-2xl font-mono font-bold">
+                {todayLog?.calories || lastLog?.calories || "--"}
+                <span className="text-sm font-sans ml-1 opacity-50 font-normal">
+                  cal
+                </span>
+              </p>
+              {!todayLog && (
+                <div className="w-2 h-2 rounded-full bg-[#FF9500] animate-pulse" />
+              )}
+            </div>
             <div className="h-1 bg-white/5 rounded-full mt-3 overflow-hidden">
               <div className="h-full bg-white/20 w-1/2"></div>
             </div>

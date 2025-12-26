@@ -1,19 +1,26 @@
 import React, { useState } from "react";
 import { DailyLog } from "../types";
 
-interface DailyLogEntryProps {
+interface DailyLogViewProps {
   logs: DailyLog[];
   onSave: (log: DailyLog) => void;
   onClose: () => void;
 }
 
-const DailyLogEntry: React.FC<DailyLogEntryProps> = ({
+const DailyLogView: React.FC<DailyLogViewProps> = ({
   logs,
   onSave,
   onClose,
 }) => {
-  const today = new Date().toISOString().split("T")[0];
+  // Use local date for "today"
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(d.getDate()).padStart(2, "0")}`;
+
   const existingLog = logs.find((l) => l.date === today);
+  console.log("existingLog", existingLog);
   const lastLog = logs.length > 0 ? logs[logs.length - 1] : null;
 
   const [weight, setWeight] = useState<string>(
@@ -37,7 +44,14 @@ const DailyLogEntry: React.FC<DailyLogEntryProps> = ({
     <div className="h-full bg-black p-6 animate-in flex flex-col overflow-y-auto">
       <header className="flex justify-between items-center mb-8 pt-safe">
         <div>
-          <h1 className="text-3xl font-black tracking-tighter">Vitals</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-black tracking-tighter">Vitals</h1>
+            {!existingLog && (
+              <div className="bg-[#FF9500]/20 border border-[#FF9500]/30 text-[#FF9500] px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider">
+                Not Logged Today
+              </div>
+            )}
+          </div>
           <p className="text-[#8E8E93] text-sm font-medium">Daily check-in.</p>
         </div>
         <button
@@ -113,4 +127,4 @@ const DailyLogEntry: React.FC<DailyLogEntryProps> = ({
   );
 };
 
-export default DailyLogEntry;
+export default DailyLogView;

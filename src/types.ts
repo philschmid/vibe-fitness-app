@@ -10,6 +10,7 @@ export interface Workout {
   id: string;
   name: string;
   exercises: Exercise[];
+  isActive: boolean;
 }
 
 export interface SetData {

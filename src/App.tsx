@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "./context/AuthContext";
-import AuthView from "./components/AuthView";
+import AuthView from "./views/AuthView";
 import {
   AppView,
   Workout,
@@ -17,17 +17,18 @@ import {
   INITIAL_DAILY_LOGS,
 } from "./constants";
 import BottomNav from "./components/BottomNav";
-import Dashboard from "./components/Dashboard";
-import DailyLogEntry from "./components/DailyLogEntry";
-import TrainingSessionView from "./components/TrainingSessionView";
-import StatsView from "./components/StatsView";
-import WorkoutsView from "./components/WorkoutsView";
-import EditWorkoutView from "./components/EditWorkoutView";
-import HistoryView from "./components/HistoryView";
-import HistoryDetailView from "./components/HistoryDetailView";
-import SettingsView from "./components/SettingsView";
+import Dashboard from "./views/Dashboard";
+import DailyLogView from "./views/DailyLogView";
+import TrainingSessionView from "./views/TrainingSessionView";
+import StatsView from "./views/StatsView";
+import WorkoutsView from "./views/WorkoutsView";
+import EditWorkoutView from "./views/EditWorkoutView";
+import HistoryView from "./views/HistoryView";
+import HistoryDetailView from "./views/HistoryDetailView";
+import SettingsView from "./views/SettingsView";
 import { useAppVersion } from "./hooks/useAppVersion";
 import UpdatePopup from "./components/UpdatePopup";
+import LoadingScreen from "./components/LoadingScreen";
 
 const App: React.FC = () => {
   const { session, loading, signOut } = useAuth();
@@ -43,9 +44,11 @@ const App: React.FC = () => {
   const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
   const [selectedSession, setSelectedSession] =
     useState<TrainingSession | null>(null);
+  const [isDataLoading, setIsDataLoading] = useState(true);
 
   const refreshData = useCallback(async () => {
     try {
+      setIsDataLoading(true);
       const [w, s, l] = await Promise.all([
         db.getWorkouts(),
         db.getTrainings(),
@@ -56,6 +59,8 @@ const App: React.FC = () => {
       setDailyLogs(l);
     } catch (error) {
       console.error("Failed to load data:", error);
+    } finally {
+      setIsDataLoading(false);
     }
   }, []);
 
@@ -253,6 +258,11 @@ const App: React.FC = () => {
   };
 
   const handleSaveWorkout = async (workout: Workout) => {
+    // Ensure isActive is set (default true for new workouts)
+    if (workout.isActive === undefined) {
+      workout.isActive = true;
+    }
+
     // Optimistic update
     const index = workouts.findIndex((w) => w.id === workout.id);
     let updatedWorkouts;
@@ -288,6 +298,23 @@ const App: React.FC = () => {
     }
   };
 
+  const handleToggleWorkoutActive = async (id: string, isActive: boolean) => {
+    // Optimistic update
+    const index = workouts.findIndex((w) => w.id === id);
+    if (index !== -1) {
+      const updatedWorkouts = [...workouts];
+      updatedWorkouts[index] = { ...updatedWorkouts[index], isActive };
+      setWorkouts(updatedWorkouts);
+    }
+
+    try {
+      await db.toggleWorkoutActive(id, isActive);
+    } catch (error) {
+      console.error("Failed to toggle workout active status:", error);
+      refreshData();
+    }
+  };
+
   const handleEditWorkout = (workout: Workout) => {
     setEditingWorkout(workout);
     setView("edit-workout");
@@ -298,16 +325,53 @@ const App: React.FC = () => {
     setView("history-detail");
   };
 
+  const handleDeleteSession = async (sessionId: string) => {
+    if (confirm("Are you sure you want to delete this session?")) {
+      // Optimistic update
+      const updatedSessions = sessions.filter((s) => s.id !== sessionId);
+      setSessions(updatedSessions);
+      setSelectedSession(null);
+      setView("history");
+
+      try {
+        await db.deleteSession(sessionId);
+      } catch (error) {
+        console.error("Failed to delete session:", error);
+        alert("Failed to delete session");
+      }
+      refreshData();
+    }
+  };
+
+  const handleUpdateSession = async (session: TrainingSession) => {
+    // Optimistic
+    const index = sessions.findIndex((s) => s.id === session.id);
+    if (index !== -1) {
+      const newSessions = [...sessions];
+      newSessions[index] = session;
+      setSessions(newSessions);
+    }
+    setSelectedSession(session);
+
+    try {
+      await db.saveTraining(session);
+    } catch (error) {
+      console.error("Failed to update session:", error);
+      alert("Failed to update session");
+    }
+    refreshData();
+  };
+
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-black text-white">
-        Loading...
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!session) {
     return <AuthView />;
+  }
+
+  if (isDataLoading) {
+    return <LoadingScreen />;
   }
 
   const renderContent = () => {
@@ -325,7 +389,7 @@ const App: React.FC = () => {
         );
       case "daily":
         return (
-          <DailyLogEntry
+          <DailyLogView
             logs={dailyLogs}
             onSave={handleSaveDailyLog}
             onClose={() => setView("dashboard")}
@@ -358,6 +422,7 @@ const App: React.FC = () => {
             onStart={handleStartSession}
             onEdit={handleEditWorkout}
             onDelete={handleDeleteWorkout}
+            onToggleActive={handleToggleWorkoutActive}
             onCreate={() => {
               setEditingWorkout(null);
               setView("edit-workout");
@@ -390,6 +455,8 @@ const App: React.FC = () => {
             session={selectedSession}
             workout={workouts.find((w) => w.id === selectedSession.workoutId)}
             onBack={() => setView("history")}
+            onDelete={handleDeleteSession}
+            onUpdate={handleUpdateSession}
           />
         );
       case "stats":

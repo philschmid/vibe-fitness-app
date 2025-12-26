@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Workout } from '../types';
 
 interface WorkoutsViewProps {
@@ -8,16 +8,29 @@ interface WorkoutsViewProps {
   onStart: (workout: Workout) => void;
   onEdit: (workout: Workout) => void;
   onDelete: (id: string) => void;
+  onToggleActive: (id: string, isActive: boolean) => void;
   onCreate: () => void;
 }
 
-const WorkoutsView: React.FC<WorkoutsViewProps> = ({ workouts, activeWorkout, onStart, onEdit, onDelete, onCreate }) => {
+const WorkoutsView: React.FC<WorkoutsViewProps> = ({ workouts, activeWorkout, onStart, onEdit, onDelete, onToggleActive, onCreate }) => {
+  const [showInactive, setShowInactive] = useState(false);
+
+  const filteredWorkouts = workouts.filter(w => w.isActive === !showInactive);
+
   return (
     <div className="p-6 space-y-8 pb-24 animate-in">
       <header className="flex justify-between items-center pt-4">
         <div>
           <h1 className="text-4xl font-black tracking-tighter">Library</h1>
-          <p className="text-[#8E8E93] text-sm font-medium">Your custom routines.</p>
+          <div className="flex items-center space-x-2">
+            <p className="text-[#8E8E93] text-sm font-medium">Your custom routines.</p>
+            <button 
+              onClick={() => setShowInactive(!showInactive)}
+              className="text-xs font-bold px-2 py-1 rounded bg-white/10 text-[#8E8E93] hover:text-white transition-colors"
+            >
+              {showInactive ? 'Show Active' : 'Show Inactive'}
+            </button>
+          </div>
         </div>
         <button 
           onClick={onCreate}
@@ -28,27 +41,43 @@ const WorkoutsView: React.FC<WorkoutsViewProps> = ({ workouts, activeWorkout, on
       </header>
 
       <div className="space-y-4">
-        {workouts.length === 0 ? (
+        {filteredWorkouts.length === 0 ? (
           <div className="py-20 text-center space-y-4">
             <div className="w-16 h-16 bg-[#1C1C1E] rounded-full flex items-center justify-center mx-auto text-[#3A3A3C]">
-              <i className="fa-solid fa-layer-group text-2xl"></i>
+              <i className={`fa-solid ${showInactive ? 'fa-box-archive' : 'fa-layer-group'} text-2xl`}></i>
             </div>
-            <p className="text-[#8E8E93] text-sm">No workout templates yet.<br/>Create one to get started.</p>
+            <p className="text-[#8E8E93] text-sm">
+              {showInactive 
+                ? 'No inactive routines.' 
+                : <>No active routines.<br/>Create one to get started.</>
+              }
+            </p>
           </div>
         ) : (
-          workouts.map(workout => (
+          filteredWorkouts.map(workout => (
             <div 
               key={workout.id} 
-              className="bg-[#1C1C1E] rounded-3xl border border-white/5 overflow-hidden active:scale-[0.99] transition-transform"
+              className={`bg-[#1C1C1E] rounded-3xl border ${showInactive ? 'border-dashed border-white/10' : 'border-white/5'} overflow-hidden active:scale-[0.99] transition-transform`}
             >
               <div className="p-4 flex justify-between items-start">
                 <div className="space-y-1">
-                  <h3 className="text-lg font-bold tracking-tight">{workout.name}</h3>
+                  <h3 className="text-lg font-bold tracking-tight opacity-90">{workout.name}</h3>
                   <p className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">
                     {workout.exercises.length} Exercises
                   </p>
                 </div>
                 <div className="flex space-x-2">
+                  <button 
+                    onClick={() => onToggleActive(workout.id, !workout.isActive)}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] ${
+                      workout.isActive 
+                        ? 'bg-yellow-500/10 text-yellow-500 active:bg-yellow-500/20' 
+                        : 'bg-green-500/10 text-green-500 active:bg-green-500/20'
+                    }`}
+                    title={workout.isActive ? "Deactivate" : "Activate"}
+                  >
+                    <i className={`fa-solid ${workout.isActive ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                  </button>
                   <button 
                     onClick={() => onEdit(workout)}
                     className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#8E8E93] active:bg-white/10"
@@ -78,10 +107,14 @@ const WorkoutsView: React.FC<WorkoutsViewProps> = ({ workouts, activeWorkout, on
                 ) : (
                   <button 
                     onClick={() => onStart(workout)}
-                    className="w-full bg-white text-black font-black py-3 rounded-xl uppercase tracking-widest text-xs flex items-center justify-center space-x-2 active:bg-[#FF9500] active:scale-95 transition-all"
+                    className={`w-full font-black py-3 rounded-xl uppercase tracking-widest text-xs flex items-center justify-center space-x-2 transition-all ${
+                      workout.isActive 
+                        ? 'bg-white text-black active:bg-[#FF9500] active:scale-95' 
+                        : 'bg-white/5 text-[#8E8E93] hover:bg-white/10'
+                    }`}
                   >
                     <i className="fa-solid fa-play text-[10px]"></i>
-                    <span>Start Routine</span>
+                    <span>{workout.isActive ? 'Start Routine' : 'Start (Inactive)'}</span>
                   </button>
                 )}
               </div>

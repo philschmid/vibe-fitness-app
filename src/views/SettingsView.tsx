@@ -1,5 +1,6 @@
 import React from "react";
 import { APP_VERSION } from "../constants";
+import { useAuth } from "../context/AuthContext";
 
 interface SettingsViewProps {
   onSeedData: () => void;
@@ -14,6 +15,9 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   onMigrateData,
   onSignOut,
 }) => {
+  const { user } = useAuth();
+  const isAdmin = user?.email === "schmidphilipp1995@gmail.com";
+
   return (
     <div className="p-6 space-y-8 pb-24 animate-in">
       <header className="pt-4">
@@ -64,20 +68,22 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                 Migrate
               </button>
             </div>
-            <div className="p-5 flex items-center justify-between border-b border-white/5">
-              <div>
-                <h3 className="font-bold text-base">Demo Mode</h3>
-                <p className="text-xs text-[#8E8E93] mt-1">
-                  Populate app with dummy data for testing.
-                </p>
+            {isAdmin && (
+              <div className="p-5 flex items-center justify-between border-b border-white/5">
+                <div>
+                  <h3 className="font-bold text-base">Demo Mode</h3>
+                  <p className="text-xs text-[#8E8E93] mt-1">
+                    Populate app with dummy data for testing.
+                  </p>
+                </div>
+                <button
+                  onClick={onSeedData}
+                  className="bg-[#FF9500] text-black px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest active:scale-95 transition-transform"
+                >
+                  Load Data
+                </button>
               </div>
-              <button
-                onClick={onSeedData}
-                className="bg-[#FF9500] text-black px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest active:scale-95 transition-transform"
-              >
-                Load Data
-              </button>
-            </div>
+            )}
             <div className="p-5 flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-base">Default Routines</h3>

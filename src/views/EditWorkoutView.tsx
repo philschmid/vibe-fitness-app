@@ -40,6 +40,7 @@ const EditWorkoutView: React.FC<EditWorkoutViewProps> = ({ workout, onSave, onCa
     onSave({
       id: workout?.id || crypto.randomUUID(),
       name,
+      isActive: workout?.isActive ?? true,
       exercises
     });
   };

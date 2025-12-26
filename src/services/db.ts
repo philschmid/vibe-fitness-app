@@ -17,6 +17,7 @@ export const db = {
         `
         id,
         name,
+        is_active,
         workout_exercises (
           id,
           order_index,
@@ -38,6 +39,7 @@ export const db = {
     return workoutsData.map((w: any) => ({
       id: w.id,
       name: w.name,
+      isActive: w.is_active ?? true,
       exercises: w.workout_exercises
         .sort((a: any, b: any) => a.order_index - b.order_index)
         .map((we: any) => ({
@@ -60,6 +62,7 @@ export const db = {
         id: workout.id,
         user_id: userData.user.id,
         name: workout.name,
+        is_active: workout.isActive,
       })
       .select()
       .single();
@@ -119,6 +122,14 @@ export const db = {
     const { error } = await supabase
       .from("workouts")
       .update({ is_archived: true }) // Soft delete
+      .eq("id", id);
+    if (error) throw error;
+  },
+
+  toggleWorkoutActive: async (id: string, isActive: boolean) => {
+    const { error } = await supabase
+      .from("workouts")
+      .update({ is_active: isActive })
       .eq("id", id);
     if (error) throw error;
   },
@@ -228,6 +239,14 @@ export const db = {
         .insert(setsToInsert);
       if (setsError) throw setsError;
     }
+  },
+
+  deleteSession: async (sessionId: string) => {
+    const { error } = await supabase
+      .from("training_sessions")
+      .delete()
+      .eq("id", sessionId);
+    if (error) throw error;
   },
 
   // --- Daily Logs ---

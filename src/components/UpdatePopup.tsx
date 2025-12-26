@@ -58,3 +58,4 @@ const UpdatePopup: React.FC<UpdatePopupProps> = ({ onUpdate, forceUpdate, releas
 
 export default UpdatePopup;
 
+

@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",
+    "clsx": "^2.1.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "recharts": "^3.6.0"
+    "recharts": "^3.6.0",
+    "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.18",
