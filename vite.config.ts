@@ -16,11 +16,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: "autoUpdate",
-        includeAssets: [
-          "favicon.ico",
-          "apple-touch-icon.png",
-          "masked-icon.svg",
-        ],
+        includeAssets: ["favicon.ico", "apple-touch-icon.png"],
         manifest: {
           name: "FlexTrack Fitness",
           short_name: "FlexTrack",
