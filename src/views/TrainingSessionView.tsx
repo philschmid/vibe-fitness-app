@@ -38,6 +38,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
   >(initialData?.exerciseResults || {});
   const [startTime] = useState<number>(initialData?.startTime || Date.now());
   const [showOverview, setShowOverview] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const currentExercise = workout.exercises[currentExIndex];
 
@@ -103,6 +104,8 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
   };
 
   const handleNext = () => {
+    if (isCompleting) return;
+
     updateCurrentSet({ completed: true });
 
     if (currentStepIndex < steps.length - 1) {
@@ -111,6 +114,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
       setCurrentExIndex((prev) => prev + 1);
       setCurrentStepIndex(0);
     } else {
+      setIsCompleting(true);
       const session: TrainingSession = {
         id: crypto.randomUUID(), // Ensure valid UUID
         workoutId: workout.id,
@@ -434,12 +438,20 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
 
           <button
             onClick={handleNext}
-            className="flex-1 h-12 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs shadow-xl active:scale-[0.97] transition-all flex items-center justify-center space-x-2"
+            disabled={isCompleting}
+            className={`flex-1 h-12 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs shadow-xl active:scale-[0.97] transition-all flex items-center justify-center space-x-2 ${
+              isCompleting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             <span>
-              {currentStep.type === "warmup" ? "Warm up Done" : "Complete Set"}
+              {isCompleting 
+                ? "Finishing..." 
+                : currentStep.type === "warmup" 
+                  ? "Warm up Done" 
+                  : "Complete Set"
+              }
             </span>
-            <i className="fa-solid fa-check text-[10px]"></i>
+            {!isCompleting && <i className="fa-solid fa-check text-[10px]"></i>}
           </button>
         </div>
       </footer>
