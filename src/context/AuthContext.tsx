@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { STORAGE_KEYS } from "../constants";
 
 interface AuthContextType {
   user: User | null;
@@ -15,15 +16,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(() => {
+    try {
+      const cached = localStorage.getItem("vibe_auth_session");
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [user, setUser] = useState<User | null>(() => session?.user ?? null);
+  const [loading, setLoading] = useState(() => !session);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session) {
+        localStorage.setItem("vibe_auth_session", JSON.stringify(session));
+      } else {
+        localStorage.removeItem("vibe_auth_session");
+      }
     });
 
     const {
@@ -32,6 +45,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session) {
+        localStorage.setItem("vibe_auth_session", JSON.stringify(session));
+      } else {
+        localStorage.removeItem("vibe_auth_session");
+      }
     });
 
     return () => subscription.unsubscribe();

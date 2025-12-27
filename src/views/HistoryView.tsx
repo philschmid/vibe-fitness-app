@@ -14,8 +14,8 @@ const HistoryView: React.FC<HistoryViewProps> = ({ sessions, workouts, onSelectS
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
-  const getWorkoutName = (workoutId: string) => {
-    return workouts.find(w => w.id === workoutId)?.name || 'Deleted Workout';
+  const getWorkoutName = (session: TrainingSession) => {
+    return session.workoutSnapshot?.name || workouts.find(w => w.id === session.workoutId)?.name || 'Deleted Workout';
   };
 
   const formatDate = (dateStr: string) => {
@@ -60,7 +60,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ sessions, workouts, onSelectS
               
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-sm leading-tight truncate">
-                  {getWorkoutName(session.workoutId)}
+                  {getWorkoutName(session)}
                 </h3>
                 <div className="flex items-center space-x-2 mt-0.5">
                   <span className="text-[9px] text-[#8E8E93] font-bold uppercase tracking-tighter">

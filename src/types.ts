@@ -4,6 +4,7 @@ export interface Exercise {
   name: string;
   sets: number;
   hasWarmup: boolean;
+  hasDropset?: boolean;
 }
 
 export interface Workout {
@@ -17,6 +18,7 @@ export interface SetData {
   reps: number;
   weight: number;
   isWarmup: boolean;
+  isDropset?: boolean;
   completed: boolean;
 }
 
@@ -27,6 +29,7 @@ export interface TrainingSession {
   startTime?: number; // Timestamp
   endTime?: number; // Timestamp
   exerciseResults: Record<string, SetData[]>; // exerciseId -> sets
+  workoutSnapshot?: Workout;
 }
 
 export interface ActiveSessionData {

@@ -1,0 +1,7 @@
+- [x] We need to update the initial loading screen protection. It is happening to often. I use the app mostly as PWA and when minimizing and re-opening it should not trigger this loading screen. it is more like the first initial opening on the home screen. My case is i use it in the gym and when i lock my phone do my ex and unlock i am in an active workout session and don't have to have this locking time. i want to quickly track it and continue. 
+- [x] workouts should not be editable when there is an active session
+- [x] history should still work even if the workout which was used was changed or modified
+- [x] i should be able to order the exercises in a workout differently
+- [x] similar to a boolean warm up set i want to add a boolean drop set
+- [x] when i delete the numbers in the tracking view it adds a 0 meaning when i delete it and then add 8 it adds 08
+- [x] Friends tested the app on android and they couldn't install it. Make sure it is a correct pwa and can be installed on android. 

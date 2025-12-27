@@ -6,6 +6,7 @@ import {
   Exercise,
   ActiveSessionData,
 } from "../types";
+import { NumberInput } from "../components/ui/NumberInput";
 
 interface TrainingSessionViewProps {
   workout: Workout;
@@ -46,6 +47,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
     for (let i = 1; i <= currentExercise.sets; i++) {
       s.push({ type: "set", label: `Set ${i}`, setNum: i - 1 });
     }
+    if (currentExercise.hasDropset) s.push({ type: "dropset", label: "Drop Set" });
     return s;
   }, [currentExercise]);
 
@@ -60,6 +62,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
           reps: prevSet?.reps || 10,
           weight: prevSet?.weight || 20,
           isWarmup: step.type === "warmup",
+          isDropset: step.type === "dropset",
           completed: false,
         };
       });
@@ -115,6 +118,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
         startTime,
         endTime: Date.now(),
         exerciseResults,
+        workoutSnapshot: workout,
       };
       onComplete(session);
     }
@@ -288,6 +292,13 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
             </div>
           ) : (
             <div className="space-y-3 animate-in flex flex-col justify-center h-full">
+              {currentStep.type === 'dropset' && (
+                 <div className="flex flex-col items-center justify-center space-y-1 pb-2">
+                    <p className="text-purple-500 font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+                        <i className="fa-solid fa-weight-hanging"></i> Drop Set
+                    </p>
+                 </div>
+              )}
               {/* Last Session Reference */}
               {previousPerformance && (
                 <div className="flex justify-center shrink-0">
@@ -325,12 +336,11 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
                         Weight
                       </p>
                       <div className="flex items-baseline justify-center">
-                        <input
-                          type="number"
+                        <NumberInput
                           value={currentSetData.weight}
-                          onChange={(e) =>
+                          onChange={(val) =>
                             updateCurrentSet({
-                              weight: parseFloat(e.target.value) || 0,
+                              weight: val,
                             })
                           }
                           className="w-24 bg-transparent text-4xl font-mono font-black text-center focus:outline-none"
@@ -369,12 +379,11 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
                       <p className="text-[9px] font-black uppercase text-[#8E8E93] tracking-[0.2em] mb-0.5">
                         Reps
                       </p>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={currentSetData.reps}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           updateCurrentSet({
-                            reps: parseInt(e.target.value) || 0,
+                            reps: val,
                           })
                         }
                         className="w-24 bg-transparent text-4xl font-mono font-black text-center focus:outline-none"

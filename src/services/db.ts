@@ -26,7 +26,8 @@ export const db = {
             id,
             name,
             default_sets,
-            has_warmup
+            has_warmup,
+            has_dropset
           )
         )
       `
@@ -47,6 +48,7 @@ export const db = {
           name: we.exercises.name,
           sets: we.target_sets || we.exercises.default_sets,
           hasWarmup: we.exercises.has_warmup,
+          hasDropset: we.exercises.has_dropset,
         })),
     }));
   },
@@ -99,6 +101,7 @@ export const db = {
             name: ex.name,
             default_sets: ex.sets,
             has_warmup: ex.hasWarmup,
+            has_dropset: ex.hasDropset || false,
           })
           .select();
 
@@ -146,6 +149,7 @@ export const db = {
         date,
         start_time,
         end_time,
+        workout_snapshot,
         session_sets (
           id,
           exercise_id,
@@ -153,6 +157,7 @@ export const db = {
           reps,
           weight,
           is_warmup,
+          is_dropset,
           completed
         )
       `
@@ -172,6 +177,7 @@ export const db = {
           reps: set.reps,
           weight: set.weight,
           isWarmup: set.is_warmup,
+          isDropset: set.is_dropset,
           completed: set.completed,
         });
       });
@@ -185,6 +191,7 @@ export const db = {
         date: s.date,
         startTime: s.start_time ? new Date(s.start_time).getTime() : undefined,
         endTime: s.end_time ? new Date(s.end_time).getTime() : undefined,
+        workoutSnapshot: s.workout_snapshot,
         exerciseResults,
       };
     });
@@ -208,6 +215,7 @@ export const db = {
         end_time: session.endTime
           ? new Date(session.endTime).toISOString()
           : null,
+        workout_snapshot: session.workoutSnapshot || null,
       });
 
     if (sessionError) throw sessionError;
@@ -228,6 +236,7 @@ export const db = {
           reps: set.reps,
           weight: set.weight,
           is_warmup: set.isWarmup,
+          is_dropset: set.isDropset || false,
           completed: set.completed,
         });
       });

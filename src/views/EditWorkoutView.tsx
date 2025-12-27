@@ -27,6 +27,16 @@ const EditWorkoutView: React.FC<EditWorkoutViewProps> = ({ workout, onSave, onCa
     setExercises(exercises.filter((_, i) => i !== idx));
   };
 
+  const moveExercise = (idx: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && idx === 0) return;
+    if (direction === 'down' && idx === exercises.length - 1) return;
+    
+    const newExs = [...exercises];
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    [newExs[idx], newExs[targetIdx]] = [newExs[targetIdx], newExs[idx]];
+    setExercises(newExs);
+  };
+
   const updateExercise = (idx: number, updates: Partial<Exercise>) => {
     const newExs = [...exercises];
     newExs[idx] = { ...newExs[idx], ...updates };
@@ -85,15 +95,32 @@ const EditWorkoutView: React.FC<EditWorkoutViewProps> = ({ workout, onSave, onCa
                     onChange={(e) => updateExercise(idx, { name: e.target.value })}
                     className="flex-1 bg-transparent text-lg font-bold outline-none placeholder:text-[#3A3A3C]"
                   />
-                  <button 
-                    onClick={() => removeExercise(idx)}
-                    className="text-red-500/50 active:text-red-500 px-2"
-                  >
-                    <i className="fa-solid fa-minus-circle"></i>
-                  </button>
+                  <div className="flex items-center">
+                    <button 
+                      onClick={() => moveExercise(idx, 'up')}
+                      disabled={idx === 0}
+                      className={`w-8 h-8 flex items-center justify-center text-[#8E8E93] hover:text-white transition-colors ${idx === 0 ? 'opacity-20 cursor-not-allowed' : ''}`}
+                    >
+                      <i className="fa-solid fa-arrow-up text-xs"></i>
+                    </button>
+                    <button 
+                      onClick={() => moveExercise(idx, 'down')}
+                      disabled={idx === exercises.length - 1}
+                      className={`w-8 h-8 flex items-center justify-center text-[#8E8E93] hover:text-white transition-colors ${idx === exercises.length - 1 ? 'opacity-20 cursor-not-allowed' : ''}`}
+                    >
+                      <i className="fa-solid fa-arrow-down text-xs"></i>
+                    </button>
+                    <div className="w-px h-4 bg-white/10 mx-1"></div>
+                    <button 
+                      onClick={() => removeExercise(idx)}
+                      className="w-8 h-8 flex items-center justify-center text-red-500/50 hover:text-red-500 transition-colors"
+                    >
+                      <i className="fa-solid fa-trash text-xs"></i>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="grid grid-cols-3 gap-3 pt-2">
                   <div className="space-y-2">
                     <p className="text-[10px] font-black text-[#8E8E93] uppercase tracking-tighter">Working Sets</p>
                     <div className="flex items-center bg-black rounded-xl border border-white/5 p-1">
@@ -123,6 +150,19 @@ const EditWorkoutView: React.FC<EditWorkoutViewProps> = ({ workout, onSave, onCa
                     >
                       <i className={`fa-solid ${ex.hasWarmup ? 'fa-fire-flame-curved' : 'fa-circle'}`}></i>
                       <span>{ex.hasWarmup ? 'Include' : 'Skip'}</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-[#8E8E93] uppercase tracking-tighter">Drop Set</p>
+                    <button 
+                      onClick={() => updateExercise(idx, { hasDropset: !ex.hasDropset })}
+                      className={`w-full h-10 rounded-xl font-bold text-xs uppercase transition-all flex items-center justify-center space-x-2 border ${
+                        ex.hasDropset ? 'bg-purple-500/10 border-purple-500/30 text-purple-500' : 'bg-black border-white/5 text-[#3A3A3C]'
+                      }`}
+                    >
+                      <i className={`fa-solid ${ex.hasDropset ? 'fa-weight-hanging' : 'fa-circle'}`}></i>
+                      <span>{ex.hasDropset ? 'Include' : 'Skip'}</span>
                     </button>
                   </div>
                 </div>

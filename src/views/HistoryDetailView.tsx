@@ -23,6 +23,8 @@ const HistoryDetailView: React.FC<HistoryDetailViewProps> = ({
     setEditedSession(session);
   }, [session]);
 
+  const displayWorkout = session.workoutSnapshot || workout;
+
   const date = new Date(session.date);
   const formattedDate = date.toLocaleDateString("en-US", {
     weekday: "long",
@@ -84,7 +86,7 @@ const HistoryDetailView: React.FC<HistoryDetailViewProps> = ({
             <i className="fa-solid fa-arrow-left mr-2"></i> Back to History
           </button>
           <h1 className="text-3xl font-black tracking-tighter">
-            {workout?.name || "Session Summary"}
+            {displayWorkout?.name || "Session Summary"}
           </h1>
           <p className="text-[#FF9500] text-xs font-black uppercase tracking-widest mt-1">
             {formattedDate}
@@ -116,7 +118,7 @@ const HistoryDetailView: React.FC<HistoryDetailViewProps> = ({
       </header>
 
       <main className="p-6 space-y-8 flex-1">
-        {workout?.exercises.map((ex) => {
+        {displayWorkout?.exercises.map((ex) => {
           // Use editedSession here
           const results = editedSession.exerciseResults[ex.id];
           if (!results) return null;

@@ -157,4 +157,5 @@ export const STORAGE_KEYS = {
   TRAININGS: "flex_trainings_v2",
   DAILY_LOGS: "flex_daily_logs_v2",
   ACTIVE_SESSION: "flex_active_session_v2",
+  AUTH_SESSION: "flex_auth_session_v2",
 };

@@ -79,16 +79,22 @@ const WorkoutsView: React.FC<WorkoutsViewProps> = ({ workouts, activeWorkout, on
                     <i className={`fa-solid ${workout.isActive ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                   </button>
                   <button 
-                    onClick={() => onEdit(workout)}
-                    className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#8E8E93] active:bg-white/10"
+                    onClick={() => !activeWorkout && onEdit(workout)}
+                    disabled={!!activeWorkout}
+                    className={`w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#8E8E93] ${
+                      activeWorkout ? 'opacity-30 cursor-not-allowed' : 'active:bg-white/10'
+                    }`}
                   >
                     <i className="fa-solid fa-pen text-[10px]"></i>
                   </button>
                   <button 
                     onClick={() => {
-                      if(confirm('Delete this workout template?')) onDelete(workout.id);
+                      if(!activeWorkout && confirm('Delete this workout template?')) onDelete(workout.id);
                     }}
-                    className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 active:bg-red-500/20"
+                    disabled={!!activeWorkout}
+                    className={`w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 ${
+                      activeWorkout ? 'opacity-30 cursor-not-allowed' : 'active:bg-red-500/20'
+                    }`}
                   >
                     <i className="fa-solid fa-trash text-[10px]"></i>
                   </button>

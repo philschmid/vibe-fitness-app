@@ -35,28 +35,40 @@ const App: React.FC = () => {
   const { updateAvailable, forceUpdate, releaseNotes, latestVersion } =
     useAppVersion();
   const [view, setView] = useState<AppView>("dashboard");
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
-  const [sessions, setSessions] = useState<TrainingSession[]>([]);
-  const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
+  const [workouts, setWorkouts] = useState<Workout[]>(() =>
+    storage.getWorkouts()
+  );
+  const [sessions, setSessions] = useState<TrainingSession[]>(() =>
+    storage.getTrainings()
+  );
+  const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(() =>
+    storage.getDailyLogs()
+  );
   const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
   const [activeSessionData, setActiveSessionData] =
     useState<ActiveSessionData | null>(null);
   const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
   const [selectedSession, setSelectedSession] =
     useState<TrainingSession | null>(null);
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(false);
 
   const refreshData = useCallback(async () => {
     try {
-      setIsDataLoading(true);
+      // Don't set loading to true if we're just refreshing
+      // setIsDataLoading(true);
       const [w, s, l] = await Promise.all([
         db.getWorkouts(),
         db.getTrainings(),
         db.getDailyLogs(),
       ]);
       setWorkouts(w);
+      storage.saveWorkouts(w);
+
       setSessions(s);
+      storage.saveTrainings(s);
+
       setDailyLogs(l);
+      storage.saveDailyLogs(l);
     } catch (error) {
       console.error("Failed to load data:", error);
     } finally {
@@ -85,6 +97,7 @@ const App: React.FC = () => {
         if (workout) {
           setActiveWorkout(workout);
           setActiveSessionData(savedActiveSession);
+          setView("session");
         }
       }
     }
@@ -368,10 +381,6 @@ const App: React.FC = () => {
 
   if (!session) {
     return <AuthView />;
-  }
-
-  if (isDataLoading) {
-    return <LoadingScreen />;
   }
 
   const renderContent = () => {

@@ -82,7 +82,16 @@ The project follows a standard React + Vite feature-based structure, with a sepa
 ### Data Layer
 The app uses a hybrid data approach:
 1.  **Supabase (Primary)**: Stores all persistent data (Workouts, Training Sessions, Daily Logs). Accessed via `src/services/db.ts`.
-2.  **LocalStorage (Secondary)**: Used for *transient* state, specifically the "Active Session" to prevent data loss during a workout if the browser refreshes or closes. Accessed via `src/services/storage.ts`.
+2.  **LocalStorage (Secondary)**: Used for:
+    *   **Caching**: All data (Workouts, Logs, Sessions) is cached to allow instant app opening without loading screens.
+    *   **Transient State**: "Active Session" progress is saved on every interaction to prevent data loss during workouts (crash/refresh protection).
+    *   Accessed via `src/services/storage.ts`.
+
+### Data Synchronization Strategy
+The app follows a **"Cache-First, Background-Sync"** and **"Optimistic UI"** pattern:
+1.  **Read**: On startup, data is loaded immediately from LocalStorage. A background process fetches fresh data from Supabase and updates the cache.
+2.  **Write**: User actions (e.g., saving a log) update the UI immediately (Optimistic). The data is then sent to Supabase. Finally, a background refresh ensures total consistency.
+3.  **Active Session**: If the app is closed/refreshed during a workout, it automatically detects the saved active session in LocalStorage and restores the `session` view, bypassing the dashboard.
 
 ### Routing
 The app uses a conditional rendering approach based on a `view` state in `App.tsx` rather than a traditional router library like `react-router`. This simplifies the "app-like" navigation feel for this specific PWA structure.
