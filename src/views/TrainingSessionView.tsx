@@ -7,10 +7,12 @@ import {
   ActiveSessionData,
 } from "../types";
 import { NumberInput } from "../components/ui/NumberInput";
+import { detectPlateauExercises } from "../lib/sessionUtils";
 
 interface TrainingSessionViewProps {
   workout: Workout;
   lastSession: TrainingSession | null;
+  allSessions: TrainingSession[];
   initialData?: ActiveSessionData | null;
   onComplete: (session: TrainingSession) => void;
   onUpdate: (data: ActiveSessionData) => void;
@@ -21,6 +23,7 @@ interface TrainingSessionViewProps {
 const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
   workout,
   lastSession,
+  allSessions,
   initialData,
   onComplete,
   onUpdate,
@@ -39,6 +42,7 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
   const [startTime] = useState<number>(initialData?.startTime || Date.now());
   const [showOverview, setShowOverview] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [dismissedPlateauWarnings, setDismissedPlateauWarnings] = useState<Set<string>>(new Set());
 
   const currentExercise = workout.exercises[currentExIndex];
 
@@ -53,6 +57,26 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
   }, [currentExercise]);
 
   const currentStep = steps[currentStepIndex];
+
+  // Check if all exercises are complete
+  const allExercisesComplete = useMemo(() => {
+    return workout.exercises.every((ex) => {
+      const results = exerciseResults[ex.id];
+      if (!results) return false;
+      const expectedSets = (ex.hasWarmup ? 1 : 0) + ex.sets + (ex.hasDropset ? 1 : 0);
+      return results.length >= expectedSets && results.every((s) => s.completed);
+    });
+  }, [workout.exercises, exerciseResults]);
+
+  // Detect plateau for current exercise
+  const currentExercisePlateau = useMemo(() => {
+    if (allSessions.length < 3) return null;
+    return detectPlateauExercises(allSessions, workout.id, currentExercise.id, 3);
+  }, [allSessions, workout.id, currentExercise.id]);
+
+  const showPlateauWarning = currentExercisePlateau?.isPlateauing && 
+    !dismissedPlateauWarnings.has(currentExercise.id) &&
+    currentStepIndex === 0; // Only show at start of exercise
 
   useEffect(() => {
     if (!exerciseResults[currentExercise.id]) {
@@ -114,18 +138,29 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
       setCurrentExIndex((prev) => prev + 1);
       setCurrentStepIndex(0);
     } else {
-      setIsCompleting(true);
-      const session: TrainingSession = {
-        id: crypto.randomUUID(), // Ensure valid UUID
-        workoutId: workout.id,
-        date: new Date(startTime).toISOString(),
-        startTime,
-        endTime: Date.now(),
-        exerciseResults,
-        workoutSnapshot: workout,
-      };
-      onComplete(session);
+      // This is the last set of the last exercise - just mark complete
+      // User needs to press "Finish Workout" button
     }
+  };
+
+  const handleFinishWorkout = () => {
+    if (isCompleting || !allExercisesComplete) return;
+
+    setIsCompleting(true);
+    const session: TrainingSession = {
+      id: crypto.randomUUID(),
+      workoutId: workout.id,
+      date: new Date(startTime).toISOString(),
+      startTime,
+      endTime: Date.now(),
+      exerciseResults,
+      workoutSnapshot: workout,
+    };
+    onComplete(session);
+  };
+
+  const handleDismissPlateauWarning = () => {
+    setDismissedPlateauWarnings((prev) => new Set([...prev, currentExercise.id]));
   };
 
   const handleBack = () => {
@@ -171,6 +206,39 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
 
   return (
     <div className="flex flex-col h-dvh bg-black text-white overflow-hidden relative">
+      {/* Plateau Warning Modal */}
+      {showPlateauWarning && currentExercisePlateau && (
+        <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl animate-in flex flex-col items-center justify-center p-6">
+          <div className="bg-[#1C1C1E] rounded-3xl p-6 border border-yellow-500/30 max-w-sm text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center mx-auto">
+              <i className="fa-solid fa-triangle-exclamation text-2xl text-yellow-500"></i>
+            </div>
+            <div>
+              <h2 className="text-xl font-black tracking-tight text-yellow-500">
+                Plateau Detected
+              </h2>
+              <p className="text-[#8E8E93] text-sm mt-2">
+                You've done <span className="text-white font-bold">{currentExercise.name}</span> with the same weight and reps for the last 3 workouts.
+              </p>
+              <div className="bg-black/30 rounded-xl p-3 mt-3">
+                <p className="text-yellow-500 font-mono font-bold">
+                  {currentExercisePlateau.weight}kg x {currentExercisePlateau.reps} reps
+                </p>
+              </div>
+              <p className="text-[#8E8E93] text-xs mt-3">
+                Consider increasing weight or reps to continue progressing.
+              </p>
+            </div>
+            <button
+              onClick={handleDismissPlateauWarning}
+              className="w-full h-12 rounded-full bg-yellow-500 text-black font-black uppercase tracking-widest text-xs active:scale-[0.97] transition-all"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Overview Modal */}
       {showOverview && (
         <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-xl animate-in flex flex-col">
@@ -436,23 +504,34 @@ const TrainingSessionView: React.FC<TrainingSessionViewProps> = ({
             <i className="fa-solid fa-arrow-left"></i>
           </button>
 
-          <button
-            onClick={handleNext}
-            disabled={isCompleting}
-            className={`flex-1 h-12 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs shadow-xl active:scale-[0.97] transition-all flex items-center justify-center space-x-2 ${
-              isCompleting ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            <span>
-              {isCompleting 
-                ? "Finishing..." 
-                : currentStep.type === "warmup" 
+          {allExercisesComplete ? (
+            <button
+              onClick={handleFinishWorkout}
+              disabled={isCompleting}
+              className={`flex-1 h-12 rounded-full bg-[#32D74B] text-black font-black uppercase tracking-widest text-xs shadow-xl active:scale-[0.97] transition-all flex items-center justify-center space-x-2 ${
+                isCompleting ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              <span>{isCompleting ? "Finishing..." : "Finish Workout"}</span>
+              {!isCompleting && <i className="fa-solid fa-flag-checkered text-[10px]"></i>}
+            </button>
+          ) : (
+            <button
+              onClick={handleNext}
+              disabled={currentSetData?.completed}
+              className={`flex-1 h-12 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs shadow-xl active:scale-[0.97] transition-all flex items-center justify-center space-x-2 ${
+                currentSetData?.completed ? "opacity-50" : ""
+              }`}
+            >
+              <span>
+                {currentStep.type === "warmup" 
                   ? "Warm up Done" 
                   : "Complete Set"
-              }
-            </span>
-            {!isCompleting && <i className="fa-solid fa-check text-[10px]"></i>}
-          </button>
+                }
+              </span>
+              <i className="fa-solid fa-check text-[10px]"></i>
+            </button>
+          )}
         </div>
       </footer>
     </div>

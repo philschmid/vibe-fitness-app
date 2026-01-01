@@ -97,3 +97,26 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 This project is licensed under the MIT License.
+
+
+I lift for ~10 years now, don't drink, track my food and workout hard. The only thing missing was tracking my weights. Over christmas i challenged myself to purely vibe code an App to see the progress we made this year.
+
+I tried several weigh tracking and workout tracking apps in the past and also handwritten notebooks, but it felt always too much work or the UX was bad. I wanted to have a simple app that i could use quickly and easily. 
+
+I invested around ~10 hours from the first prompt to a working app, which is now tested by ~10 friends from my gym. Here is how i did it: 
+
+1. Started in AI Studio and used Gemini 3 Flash and a very detailed prompt with the concrete features and UX i wanted to achieve. I created multiple versions. 
+2. I took the best one and moved to local env with Cursor. 
+3. I asked Gemini to update the project to a PWA (Progressive Web App), Added Supabase for authentication and database storage. (Used the MCP server to provide details about supabase).
+4. Setup a Vercel deploymend and shared it with my friends.
+5. Since then I was able to ship around 5 additional features and bug fixes, based on their feedback.
+
+Note: Building a PWA was a great decision. I was able to acheive a native-like experience (standalone app), I can ship updates with ~1 minute and there was no need to go through a review process. 
+
+Learnings: 
+
+If you have engineering skills, and are familiar with the tech you use, you can iterate so much faster. Models are making mistakes or implementing features wrongly, setting wrong permissions etc. Mostly as becuase you weren't concrete enough in your prompt. But knowing, identifying and reviewing them prevents these mistakes from happening and you can ship faster. 
+
+Before AI I would have probably spent 2-3 weeks full time on this scope of work. Now, I was able to ship a working "app" in 10 hours. The App is nothing special, but it does exactly what and how i want it to. It will not scale to millions of users, but it doesn't have to. 
+
+I am more bullished and excited about the future of AI and how it will change the way we work. And I am more convienced then ever that being an engineer and being able to code is a superpower and you can achieve so much more than you think. 

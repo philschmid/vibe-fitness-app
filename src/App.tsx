@@ -26,9 +26,11 @@ import EditWorkoutView from "./views/EditWorkoutView";
 import HistoryView from "./views/HistoryView";
 import HistoryDetailView from "./views/HistoryDetailView";
 import SettingsView from "./views/SettingsView";
+import WorkoutSummaryView from "./views/WorkoutSummaryView";
 import { useAppVersion } from "./hooks/useAppVersion";
 import UpdatePopup from "./components/UpdatePopup";
 import LoadingScreen from "./components/LoadingScreen";
+import { getPreviousSession } from "./lib/sessionUtils";
 
 const App: React.FC = () => {
   const { session, loading, signOut } = useAuth();
@@ -49,6 +51,8 @@ const App: React.FC = () => {
     useState<ActiveSessionData | null>(null);
   const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
   const [selectedSession, setSelectedSession] =
+    useState<TrainingSession | null>(null);
+  const [completedSession, setCompletedSession] =
     useState<TrainingSession | null>(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
 
@@ -232,13 +236,21 @@ const App: React.FC = () => {
       return; // Don't clear state if failed
     }
 
+    // Store the completed session for summary view
+    setCompletedSession(session);
+    
     // Clear active session
-    setActiveWorkout(null);
     setActiveSessionData(null);
     storage.clearActiveSession();
 
-    setView("dashboard");
+    setView("summary");
     refreshData(); // Sync with DB
+  };
+
+  const handleCloseSummary = () => {
+    setCompletedSession(null);
+    setActiveWorkout(null);
+    setView("dashboard");
   };
 
   const handleAbortSession = () => {
@@ -416,11 +428,30 @@ const App: React.FC = () => {
           <TrainingSessionView
             workout={activeWorkout}
             lastSession={lastSes}
+            allSessions={sessions}
             initialData={activeSessionData}
             onComplete={handleFinishSession}
             onUpdate={handleSessionUpdate}
             onCancel={() => setView("dashboard")}
             onAbort={handleAbortSession}
+          />
+        );
+      case "summary":
+        if (!completedSession || !activeWorkout) {
+          setView("dashboard");
+          return null;
+        }
+        const prevSession = getPreviousSession(
+          sessions,
+          completedSession.workoutId,
+          completedSession.id
+        );
+        return (
+          <WorkoutSummaryView
+            session={completedSession}
+            workout={activeWorkout}
+            previousSession={prevSession}
+            onClose={handleCloseSummary}
           />
         );
       case "workouts":
@@ -506,7 +537,8 @@ const App: React.FC = () => {
       {view !== "session" &&
         view !== "edit-workout" &&
         view !== "daily" &&
-        view !== "history-detail" && (
+        view !== "history-detail" &&
+        view !== "summary" && (
           <BottomNav currentView={view} onViewChange={setView} />
         )}
     </div>

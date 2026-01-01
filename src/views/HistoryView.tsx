@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TrainingSession, Workout } from '../types';
+import { calculateTotalVolume, compareSessionVolume } from '../lib/sessionUtils';
 
 interface HistoryViewProps {
   sessions: TrainingSession[];
@@ -14,6 +15,37 @@ const HistoryView: React.FC<HistoryViewProps> = ({ sessions, workouts, onSelectS
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
+  // Calculate volume changes for each session
+  const sessionChanges = useMemo(() => {
+    const changes: Record<string, number | null> = {};
+    
+    // Group sessions by workoutId
+    const byWorkout: Record<string, TrainingSession[]> = {};
+    sessions.forEach((s) => {
+      if (!byWorkout[s.workoutId]) {
+        byWorkout[s.workoutId] = [];
+      }
+      byWorkout[s.workoutId].push(s);
+    });
+    
+    // Sort each workout's sessions by date and calculate changes
+    Object.values(byWorkout).forEach((workoutSessions) => {
+      const sorted = [...workoutSessions].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+      sorted.forEach((session, index) => {
+        if (index === 0) {
+          changes[session.id] = null; // First session has no comparison
+        } else {
+          const prev = sorted[index - 1];
+          changes[session.id] = compareSessionVolume(session, prev);
+        }
+      });
+    });
+    
+    return changes;
+  }, [sessions]);
+
   const getWorkoutName = (session: TrainingSession) => {
     return session.workoutSnapshot?.name || workouts.find(w => w.id === session.workoutId)?.name || 'Deleted Workout';
   };
@@ -25,6 +57,16 @@ const HistoryView: React.FC<HistoryViewProps> = ({ sessions, workouts, onSelectS
       month: 'short', 
       day: 'numeric' 
     }).format(date);
+  };
+
+  const getChangeIndicator = (change: number | null) => {
+    if (change === null) return null;
+    if (change > 2) {
+      return { icon: "fa-arrow-up", color: "text-green-400", bg: "bg-green-500/10" };
+    } else if (change < -2) {
+      return { icon: "fa-arrow-down", color: "text-red-400", bg: "bg-red-500/10" };
+    }
+    return { icon: "fa-equals", color: "text-yellow-400", bg: "bg-yellow-500/10" };
   };
 
   return (
@@ -43,39 +85,50 @@ const HistoryView: React.FC<HistoryViewProps> = ({ sessions, workouts, onSelectS
             <p className="text-[#8E8E93] text-sm">No recorded sessions yet.</p>
           </div>
         ) : (
-          sortedSessions.map((session) => (
-            <button 
-              key={session.id}
-              onClick={() => onSelectSession(session)}
-              className="w-full text-left bg-[#1C1C1E] rounded-2xl p-3 border border-white/5 flex items-center space-x-3 active:scale-[0.98] transition-all group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-black flex flex-col items-center justify-center text-[#FF9500] border border-white/5 group-active:border-[#FF9500]/50">
-                <span className="text-[8px] font-black uppercase leading-none opacity-60">
-                  {new Date(session.date).toLocaleString('default', { month: 'short' })}
-                </span>
-                <span className="text-base font-black leading-none">
-                  {new Date(session.date).getDate()}
-                </span>
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-sm leading-tight truncate">
-                  {getWorkoutName(session)}
-                </h3>
-                <div className="flex items-center space-x-2 mt-0.5">
-                  <span className="text-[9px] text-[#8E8E93] font-bold uppercase tracking-tighter">
-                    {Object.keys(session.exerciseResults).length} Ex
+          sortedSessions.map((session) => {
+            const change = sessionChanges[session.id];
+            const indicator = getChangeIndicator(change);
+            
+            return (
+              <button 
+                key={session.id}
+                onClick={() => onSelectSession(session)}
+                className="w-full text-left bg-[#1C1C1E] rounded-2xl p-3 border border-white/5 flex items-center space-x-3 active:scale-[0.98] transition-all group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-black flex flex-col items-center justify-center text-[#FF9500] border border-white/5 group-active:border-[#FF9500]/50">
+                  <span className="text-[8px] font-black uppercase leading-none opacity-60">
+                    {new Date(session.date).toLocaleString('default', { month: 'short' })}
                   </span>
-                  <span className="text-white/10">•</span>
-                  <span className="text-[9px] text-[#8E8E93] font-bold uppercase tracking-tighter">
-                    {formatDate(session.date)}
+                  <span className="text-base font-black leading-none">
+                    {new Date(session.date).getDate()}
                   </span>
                 </div>
-              </div>
-              
-              <i className="fa-solid fa-chevron-right text-[#3A3A3C] text-[10px] pr-1"></i>
-            </button>
-          ))
+                
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-sm leading-tight truncate">
+                    {getWorkoutName(session)}
+                  </h3>
+                  <div className="flex items-center space-x-2 mt-0.5">
+                    <span className="text-[9px] text-[#8E8E93] font-bold uppercase tracking-tighter">
+                      {Object.keys(session.exerciseResults).length} Ex
+                    </span>
+                    <span className="text-white/10">•</span>
+                    <span className="text-[9px] text-[#8E8E93] font-bold uppercase tracking-tighter">
+                      {formatDate(session.date)}
+                    </span>
+                  </div>
+                </div>
+                
+                {indicator && (
+                  <div className={`w-7 h-7 rounded-full ${indicator.bg} flex items-center justify-center`}>
+                    <i className={`fa-solid ${indicator.icon} text-[10px] ${indicator.color}`}></i>
+                  </div>
+                )}
+                
+                <i className="fa-solid fa-chevron-right text-[#3A3A3C] text-[10px] pr-1"></i>
+              </button>
+            );
+          })
         )}
       </div>
     </div>

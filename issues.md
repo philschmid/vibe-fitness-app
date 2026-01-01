@@ -5,3 +5,8 @@
 - [x] similar to a boolean warm up set i want to add a boolean drop set
 - [x] when i delete the numbers in the tracking view it adds a 0 meaning when i delete it and then add 8 it adds 08
 - [x] Friends tested the app on android and they couldn't install it. Make sure it is a correct pwa and can be installed on android. 
+- [x] Workouts cannot be finished until all exercises are tracked and completed.
+- [x] Add a summary view after the workout is completed. This view should include stats about the workout and how it compares to previous workouts with a overall improvement/decline score.
+- [x] The overview/history should have arrows indicating if the workout was better or worse than the previous workout.
+- [x] After 3 workouts with the same weight and reps should be a warning that the workout is not challenging enough and should be increased. this should appear when the 4th workout is started on the reps count. 
+- [x] Rework the analytics view. It is not very useful and not very informative. Look at the data we have and see what we can do with it.
