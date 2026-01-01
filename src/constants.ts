@@ -1,6 +1,6 @@
 import { Workout, TrainingSession, DailyLog } from "./types";
 
-export const APP_VERSION = "0.0.5";
+export const APP_VERSION = "0.0.6";
 
 export const INITIAL_WORKOUTS: Workout[] = [
   {
